@@ -1,0 +1,286 @@
+# https://docs.oracle.com/en-us/iaas/Content/ResourceManager/Concepts/terraformconfigresourcemanager_topic-schema.htm
+
+title: Deploy OrangeHRM Starter on OCI with MDS
+description: Deploy OrangeHRM Starter (Open Source) on OCI with MySQL Database Service
+schemaVersion: 1.1.0
+version: "20230127"
+
+locale: "en"
+variableGroups:
+  - title: "Hidden Variable Group"
+    visible: false
+    variables:
+      - tenancy_ocid
+      - region
+      - compartment_ocid
+      - vm_user
+      - availability_domain_number
+
+  # - title: "OrangeHRM: License Acceptance"
+  #   variables:
+  #     - license_acceptance
+
+  - title: "Additional Configuration Options"
+    variables:
+      - show_advanced
+      - tag_key_name
+      - tag_value
+
+  - title: "Compute Configuration"
+    visible:
+      and:
+        - show_advanced
+    variables:
+      - vm_display_name
+      - vm_compute_shape
+      - vm_flex_shape_ocpus
+      - vm_flex_shape_memory
+      - availability_domain_name
+      - ssh_public_key
+
+  - title: "Virtual Cloud Network Configuration"
+    visible:
+      and:
+        - show_advanced
+    variables:
+      - vcn_display_name
+      - vcn_dns_label
+      - vcn_cidr_block
+
+  - title: "Subnet Configuration"
+    visible:
+      and:
+        - show_advanced
+    variables:
+      - subnet_display_name
+      - subnet_dns_label
+      # - subnet_cidr_block
+
+variables:
+  ######################################################
+  ##############    HIDDEN VARIABLES       #############
+  ######################################################
+
+  tenancy_ocid:
+    type: string
+    title: Tenancy ID
+    description: The Oracle Cloud Identifier (OCID) for your tenancy
+    required: true
+
+  region:
+    type: oci:identity:region:name
+    title: Region
+    description: The region in which to create all resources
+    required: true
+
+  ######################################################
+  #########    OrangeHRM: License Acceptance      ######
+  ######################################################
+
+  # license_acceptance:
+  #   type: boolean
+  #   required: true
+  #   title: License Acceptance
+  #   description: I accept the terms in the [License Agreement](https://github.com/orangehrm/orangehrm/blob/main/LICENSE)
+  #   default: true
+  #   disable: true
+
+  ######################################################
+  ##############    COMPUTE VARIABLES      #############
+  ######################################################
+
+  show_advanced:
+    type: boolean
+    title: "Show advanced options?"
+    description: "Shows advanced options."
+    visible: true
+    default: false
+
+  tag_key_name:
+    type: string
+    required: true
+    title: Tag key name
+
+  tag_value:
+    type: string
+    required: true
+    title: Tag value
+
+  availability_domain_name:
+    type: oci:identity:availabilitydomain:name
+    dependsOn:
+      compartmentId: compartment_ocid
+    required: true
+    default: 1
+    title: Availability Domain
+    description: Availability Domain
+
+  ssh_public_key:
+    type: oci:core:ssh:publickey
+    required: false
+    default: ""
+    title: Public SSH Key string
+    description: Public SSH Key to access VM via SSH
+
+  vm_display_name:
+    type: string
+    required: true
+    title: Instance Name
+    description: The name of the Instance
+
+  vm_compute_shape:
+    type: oci:core:instanceshape:name
+    default: VM.Standard2.2
+    title: Compute Shape
+    required: true
+    dependsOn:
+      compartmentId: compartment_ocid
+      imageId: ocid1.image.oc1.iad.aaaaaaaavpnliqkcvdxexxvqwcfnf7gije33eu2amfbwc3wrxhhice6aqxdq
+
+  vm_flex_shape_memory:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    default: 6
+    title: "Flex Shape Memory (GB)"
+    description: "Choose number GB for Flex Shape Memory."
+    visible:
+      and:
+        - or:
+            - eq:
+                - vm_compute_shape
+                - "VM.Standard3.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.Standard.E3.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.Standard.E4.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.Standard.A1.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.DenseIO.E4.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.Optimized3.Flex"
+
+  vm_flex_shape_ocpus:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 64
+    multipleOf: 1
+    default: 1
+    title: "Flex Shape OCPUs"
+    description: "Choose number of OCPUs for Flex Shape."
+    visible:
+      and:
+        - or:
+            - eq:
+                - vm_compute_shape
+                - "VM.Standard3.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.Standard.E3.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.Standard.E4.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.Standard.A1.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.DenseIO.E4.Flex"
+            - eq:
+                - vm_compute_shape
+                - "VM.Optimized3.Flex"
+
+  ######################################################
+  ##############     NETWORK VARIABLES     #############
+  ######################################################
+
+  ######## VCN ########
+
+  vcn_display_name:
+    visible: true
+    type: string
+    required: true
+    title: Name
+    description: The name of the new Virtual Cloud Network (VCN)
+
+  vcn_cidr_block:
+    visible: true
+    type: string
+    required: true
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    title: CIDR Block
+    description: The CIDR of the new Virtual Cloud Network (VCN). If you plan to peer this VCN with another VCN, the VCNs must not have overlapping CIDRs.
+    default: "10.0.0.0/16"
+
+  vcn_dns_label:
+    visible: true
+    type: string
+    required: true
+    title: DNS Label
+    maxLenght: 15
+    description: VCN DNS Label. Only letters and numbers, starting with a letter. 15 characters max.
+
+  ######## MANAGEMENT SUBNET ########
+  subnet_display_name:
+    visible: true
+    type: string
+    required: true
+    title: Name
+    description: The name of the new Subnet
+
+  # subnet_cidr_block:
+  #   visible: true
+  #   type: string
+  #   pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+  #   required: true
+  #   title: CIDR Block
+  #   description: The CIDR of the new Subnet. The new subnet's CIDR should not overlap with any other subnet CIDRs.
+  #   default: "10.0.0.0/24"
+
+  subnet_dns_label:
+    visible: true
+    type: string
+    required: true
+    title: DNS Label
+    maxLenght: 15
+    description: Subnet DNS Label. Only letters and numbers, starting with a letter. 15 characters max.
+
+#############################################
+###########    OUTPUT GROUPS     ############
+#############################################
+
+outputGroups:
+  - title: "Instance Management"
+    outputs:
+      - instance_public_ip
+      - instance_private_ip
+
+#############################################
+##############     OUTPUTS     ##############
+#############################################
+
+outputs:
+  instance_https_url:
+    type: link
+    title: Open Application URL
+    visible: false
+
+  instance_public_ip:
+    type: link
+    title: Public IP
+    visible: true
+
+  instance_private_ip:
+    type: link
+    title: Private IP
+    visible: true
+
+primaryOutputButton: instance_https_url
