@@ -1,7 +1,6 @@
 resource "oci_core_instance" "orangehrm" {
   availability_domain = var.availability_domain_name
   compartment_id      = var.compartment_ocid
-  display_name        = var.vm_display_name
   shape               = var.vm_compute_shape
 
   source_details {
@@ -19,7 +18,6 @@ resource "oci_core_instance" "orangehrm" {
 
   create_vnic_details {
     subnet_id              = var.subnet_id
-    display_name           = var.subnet_display_name
     assign_public_ip       = false
     skip_source_dest_check = false
   }
@@ -33,7 +31,6 @@ resource "oci_core_instance" "orangehrm" {
 resource "oci_core_instance" "orangehrm_instance_2" {
   availability_domain = var.availability_domain_name
   compartment_id      = var.compartment_ocid
-  display_name        = "orangehrm-vm-2"
   shape               = var.vm_compute_shape
 
   source_details {

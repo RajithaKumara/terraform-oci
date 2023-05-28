@@ -38,11 +38,6 @@ variable "availability_domain_number" {
   description = "OCI Availability Domains: 1,2,3  (subject to region availability)"
 }
 
-variable "vm_display_name" {
-  description = "Instance Name"
-  default     = "orangehrm-vm"
-}
-
 variable "vm_compute_shape" {
   description = "Compute Shape"
   default     = "VM.Standard.E3.Flex"

@@ -31,7 +31,6 @@ variableGroups:
       and:
         - show_advanced
     variables:
-      - vm_display_name
       - vm_compute_shape
       - vm_flex_shape_ocpus
       - vm_flex_shape_memory
@@ -121,12 +120,6 @@ variables:
     default: ""
     title: Public SSH Key string
     description: Public SSH Key to access VM via SSH
-
-  vm_display_name:
-    type: string
-    required: true
-    title: Instance Name
-    description: The name of the Instance
 
   vm_compute_shape:
     type: oci:core:instanceshape:name

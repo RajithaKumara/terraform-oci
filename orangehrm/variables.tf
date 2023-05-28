@@ -26,11 +26,6 @@ variable "availability_domain_name" {
   description = "Availability Domain name"
 }
 
-variable "vm_display_name" {
-  description = "Instance Name"
-  default     = "simple-vm"
-}
-
 variable "vm_compute_shape" {
   description = "Compute Shape"
   default     = "VM.Standard.E3.Flex"
@@ -64,9 +59,6 @@ variable "subnet_id" {
 }
 
 variable "vcn_id" {
-}
-
-variable "subnet_display_name" {
 }
 
 ############################

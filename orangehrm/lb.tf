@@ -1,4 +1,4 @@
-resource "oci_load_balancer" "lb01" {
+resource "oci_load_balancer" "orangehrm_lb" {
   shape = var.lb_shape
 
   dynamic "shape_details" {
@@ -31,8 +31,8 @@ resource "oci_load_balancer" "lb01" {
 # }
 
 resource "oci_load_balancer_backend_set" "lb_bes_orangehrm" {
-  name             = "orangehrmLBBackentSet"
-  load_balancer_id = oci_load_balancer.lb01.id
+  name             = "orangehrm-lb-backend-set"
+  load_balancer_id = oci_load_balancer.orangehrm_lb.id
   policy           = "ROUND_ROBIN"
 
   health_checker {
@@ -48,7 +48,7 @@ resource "oci_load_balancer_backend_set" "lb_bes_orangehrm" {
 }
 
 resource "oci_load_balancer_listener" "lb_listener_orangehrm" {
-  load_balancer_id         = oci_load_balancer.lb01.id
+  load_balancer_id         = oci_load_balancer.orangehrm_lb.id
   name                     = "http"
   default_backend_set_name = oci_load_balancer_backend_set.lb_bes_orangehrm.name
   port                     = 80
@@ -58,7 +58,7 @@ resource "oci_load_balancer_listener" "lb_listener_orangehrm" {
 resource "oci_load_balancer_listener" "lb_listener_orangehrm_ssl" {
   depends_on = [ oci_load_balancer_certificate.temp_certificate ]
 
-  load_balancer_id         = oci_load_balancer.lb01.id
+  load_balancer_id         = oci_load_balancer.orangehrm_lb.id
   name                     = "https"
   default_backend_set_name = oci_load_balancer_backend_set.lb_bes_orangehrm.name
   port                     = 443
@@ -72,7 +72,7 @@ resource "oci_load_balancer_listener" "lb_listener_orangehrm_ssl" {
 }
 
 resource "oci_load_balancer_backend" "lb_be_orangehrm1" {
-  load_balancer_id = oci_load_balancer.lb01.id
+  load_balancer_id = oci_load_balancer.orangehrm_lb.id
   backendset_name  = oci_load_balancer_backend_set.lb_bes_orangehrm.name
   ip_address       = oci_core_instance.orangehrm.private_ip
   port             = 80
@@ -83,7 +83,7 @@ resource "oci_load_balancer_backend" "lb_be_orangehrm1" {
 }
 
 resource "oci_load_balancer_backend" "lb_be_orangehrm2plus" {
-  load_balancer_id = oci_load_balancer.lb01.id
+  load_balancer_id = oci_load_balancer.orangehrm_lb.id
   backendset_name  = oci_load_balancer_backend_set.lb_bes_orangehrm.name
   ip_address       = oci_core_instance.orangehrm_instance_2.private_ip
   port             = 80
@@ -103,7 +103,7 @@ resource "tls_self_signed_cert" "demo_certificate" {
 
   subject {
     common_name         = "demo_certificate"
-    organization        = "OrangeHRM"
+    organization        = "Example Org"
   }
 
   validity_period_hours = 30 * 24
@@ -117,7 +117,7 @@ resource "tls_self_signed_cert" "demo_certificate" {
 
 resource "oci_load_balancer_certificate" "temp_certificate" {
     certificate_name = "temp_ssl_certificate"
-    load_balancer_id = oci_load_balancer.lb01.id
+    load_balancer_id = oci_load_balancer.orangehrm_lb.id
     private_key = tls_private_key.demo_private_key.private_key_pem
     public_certificate = tls_self_signed_cert.demo_certificate.cert_pem
     lifecycle {
