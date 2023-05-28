@@ -1,17 +1,23 @@
 #!/bin/bash
 set -ex
 
+####
+# Use `$ cat /var/log/cloud-init-output.log` inside the instance to debug this script
+# To debug further can use `$ sudo cat /var/log/cloud-init.log`
+####
+
 # SSH key
 cp /home/opc/.ssh/authorized_keys /home/opc/.ssh/authorized_keys.bak
 echo "${ssh_public_key}" >> /home/opc/.ssh/authorized_keys
 chown -R opc /home/opc/.ssh/authorized_keys
 
 # Install Nodejs
-dnf -y module install nodejs:18/common
+curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+sudo yum install -y nodejs
 
-# firewall-cmd --add-service=http --permanent
-# firewall-cmd --add-service=https --permanent
-# firewall-cmd --reload
+sudo systemctl stop firewalld
+sudo firewall-offline-cmd --add-service=http
+sudo systemctl restart firewalld
 
 # Start server
 cd ${home_dir}
@@ -19,7 +25,6 @@ cd ${home_dir}
 cat << EOF > ./server.js;
 const http = require("http");
 
-const hostname = "127.0.0.1";
 const port = 80;
 
 const server = http.createServer((req, res) => {
@@ -29,8 +34,8 @@ const server = http.createServer((req, res) => {
   res.end("Hello World");
 });
 
-server.listen(port, hostname, () => {
-  console.log("Server running at http://" + hostname + ":"  + port);
+server.listen(port, () => {
+  console.log("Server running on port: " + port);
 });
 EOF
 
