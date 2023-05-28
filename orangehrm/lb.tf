@@ -55,6 +55,22 @@ resource "oci_load_balancer_listener" "lb_listener_orangehrm" {
   protocol                 = "HTTP"
 }
 
+resource "oci_load_balancer_listener" "lb_listener_orangehrm_ssl" {
+  depends_on = [ oci_load_balancer_certificate.temp_certificate ]
+
+  load_balancer_id         = oci_load_balancer.lb01.id
+  name                     = "https"
+  default_backend_set_name = oci_load_balancer_backend_set.lb_bes_orangehrm.name
+  port                     = 443
+  protocol                 = "HTTP"
+
+  ssl_configuration {
+    certificate_name        = "temp_ssl_certificate" 
+    verify_peer_certificate = false
+    protocols               = [ "TLSv1.2" ]
+  }
+}
+
 resource "oci_load_balancer_backend" "lb_be_orangehrm1" {
   load_balancer_id = oci_load_balancer.lb01.id
   backendset_name  = oci_load_balancer_backend_set.lb_bes_orangehrm.name
@@ -66,15 +82,45 @@ resource "oci_load_balancer_backend" "lb_be_orangehrm1" {
   weight           = 1
 }
 
-# resource "oci_load_balancer_backend" "lb_be_orangehrm2plus" {
-#   count            = var.numberOfNodes > 1 ? var.numberOfNodes - 1 : 0
-#   load_balancer_id = oci_load_balancer.lb01[0].id
-#   backendset_name  = oci_load_balancer_backend_set.lb_bes_orangehrm[0].name
-#   ip_address       = oci_core_instance.orangehrm_from_image[count.index].private_ip
-#   port             = 80
-#   backup           = false
-#   drain            = false
-#   offline          = false
-#   weight           = 1
-# }
+resource "oci_load_balancer_backend" "lb_be_orangehrm2plus" {
+  load_balancer_id = oci_load_balancer.lb01.id
+  backendset_name  = oci_load_balancer_backend_set.lb_bes_orangehrm.name
+  ip_address       = oci_core_instance.orangehrm_instance_2.private_ip
+  port             = 80
+  backup           = false
+  drain            = false
+  offline          = false
+  weight           = 1
+}
 
+resource "tls_private_key" "demo_private_key" {
+  algorithm = "RSA"
+  rsa_bits  = "4096"
+}
+
+resource "tls_self_signed_cert" "demo_certificate" {
+  private_key_pem   = tls_private_key.demo_private_key.private_key_pem
+
+  subject {
+    common_name         = "demo_certificate"
+    organization        = "OrangeHRM"
+  }
+
+  validity_period_hours = 30 * 24
+
+  allowed_uses = [
+    "digital_signature",
+    "cert_signing",
+    "crl_signing",
+  ]
+}
+
+resource "oci_load_balancer_certificate" "temp_certificate" {
+    certificate_name = "temp_ssl_certificate"
+    load_balancer_id = oci_load_balancer.lb01.id
+    private_key = tls_private_key.demo_private_key.private_key_pem
+    public_certificate = tls_self_signed_cert.demo_certificate.cert_pem
+    lifecycle {
+        create_before_destroy = true
+    }
+}
