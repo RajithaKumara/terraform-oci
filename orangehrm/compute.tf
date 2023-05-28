@@ -24,16 +24,6 @@ resource "oci_core_instance" "orangehrm" {
     skip_source_dest_check = false
   }
 
-  agent_config {
-    are_all_plugins_disabled = false
-    is_management_disabled   = false
-    is_monitoring_disabled   = false
-    plugins_config {
-      desired_state = "ENABLED"
-      name          = "Bastion"
-    }
-  }
-
   metadata = {
     ssh_authorized_keys = var.ssh_authorized_keys
     user_data           = data.template_cloudinit_config.cloud_init.rendered

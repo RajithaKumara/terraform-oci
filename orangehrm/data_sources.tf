@@ -13,10 +13,6 @@ data "oci_core_images" "autonomous_ol8" {
   }
 }
 
-# data "template_file" "install_nodejs" {
-#   template = file("${path.module}/scripts/install_nodejs.sh")
-# }
-
 data "template_file" "init_script" {
   template = file("${path.module}/scripts/init.sh.tpl")
   vars = {
@@ -34,20 +30,3 @@ data "template_cloudinit_config" "cloud_init" {
   }
 }
 
-data "oci_core_vnic_attachments" "orangehrm_vnics" {
-  depends_on          = [oci_core_instance.orangehrm]
-  compartment_id      = var.compartment_ocid
-  availability_domain = var.availability_domain_name
-  instance_id         = oci_core_instance.orangehrm.id
-}
-
-data "oci_core_vnic" "orangehrm_vnic1" {
-  depends_on = [oci_core_instance.orangehrm]
-  vnic_id    = data.oci_core_vnic_attachments.orangehrm_vnics.vnic_attachments[0]["vnic_id"]
-}
-
-data "oci_core_private_ips" "orangehrm_private_ips1" {
-  depends_on = [oci_core_instance.orangehrm]
-  vnic_id    = data.oci_core_vnic.orangehrm_vnic1.id
-  subnet_id  = var.subnet_id
-}

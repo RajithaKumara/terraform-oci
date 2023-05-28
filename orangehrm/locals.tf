@@ -4,8 +4,6 @@ locals {
   is_flex_shape = contains(local.compute_flexible_shapes, var.vm_compute_shape)
   is_flexible_lb_shape   = var.lb_shape == "flexible" ? true : false
 
-  # script_install_nodejs       = "/home/${var.vm_user}/install_nodejs.sh"
-  # script_finalize          = "/home/${var.vm_user}/finalize.sh"
   home_dir                 = "/home/${var.vm_user}"
 }
 
