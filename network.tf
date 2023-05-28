@@ -11,7 +11,7 @@ resource "oci_core_subnet" "orangehrm_subnet" {
   vcn_id                     = oci_core_vcn.orangehrm_vcn.id
   display_name               = var.subnet_display_name
   dns_label                  = substr(var.subnet_dns_label, 0, 15)
-  prohibit_public_ip_on_vnic = false
+  prohibit_public_ip_on_vnic = true
 
   route_table_id    = oci_core_route_table.orangehrm_route_table.id
   security_list_ids = [oci_core_security_list.private_security_list_http.id]

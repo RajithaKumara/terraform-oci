@@ -6,11 +6,6 @@ set -ex
 # To debug further can use `$ sudo cat /var/log/cloud-init.log`
 ####
 
-# SSH key
-cp /home/opc/.ssh/authorized_keys /home/opc/.ssh/authorized_keys.bak
-echo "${ssh_public_key}" >> /home/opc/.ssh/authorized_keys
-chown -R opc /home/opc/.ssh/authorized_keys
-
 # Install Nodejs
 curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
 sudo yum install -y nodejs
